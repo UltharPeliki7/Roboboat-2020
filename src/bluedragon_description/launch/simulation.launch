@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+     <!-- Don't use gui -->
+	<arg name="gui" default="False" />
+	<param name="use_gui" value="$(arg gui)"/>
+    <param name="use_sim_time" value="False" />
+
+     <!-- Load bluedragon urdf file as robot_description -->
+	<param name="bluedragon_description" textfile="/home/monarch/catkin_ws/src/bluedragon_description/urdf/bluedragon.urdf" />
+
+  <!-- ROS URDF description of the ZED -->
+  <param name="zed_description" textfile="$(find zed_wrapper)/urdf/zed.urdf" />
+  <node name="zed_state_publisher" pkg="robot_state_publisher" type="state_publisher">
+    <remap from="robot_description" to="zed_description" />
+  </node>
+
+
+    <!-- Establish transformation tree for all nodes except base_link_to_odom_combined -->
+	<node pkg="tf" type="static_transform_publisher" name="laser_to_base_link" args="0.0 0.000 0.00 0.0 0.0 0.0 /base_link /laser_link 100" />
+	<node pkg="tf" type="static_transform_publisher" name="map_to_odom_combined" args="0.0 0.00 0.00 0.0 0.0 0.0 /map /robot_pose_ekf/odom_combined 100" />
+     <node pkg="tf" type="static_transform_publisher" name="imu_to_base_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /base_link /imu_link 100" />
+     <node pkg="tf" type="static_transform_publisher" name="left_thruster_to_base_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /base_link /left_thruster_link 100" />
+     <node pkg="tf" type="static_transform_publisher" name="right_thruster_to_base_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /base_link /right_thruster_link 100" />
+     <node pkg="tf" type="static_transform_publisher" name="gps_to_base_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /base_link /gps_link 100" />
+     <node pkg="tf" type="static_transform_publisher" name="zed_to_base_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /base_link /zed_link 100" />
+     <node pkg="tf" type="static_transform_publisher" name="zed_to_zed_link" args="0.0 0.00 0.00 0.0 0.0 0.0 /zed_link /zed_current_frame 100" />
+	<node pkg="tf" type="static_transform_publisher" name="ultrasound1_to_base_link" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /ultrasound1_link 100" />
+	<node pkg="tf" type="static_transform_publisher" name="ultrasound2_to_base_link" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /ultrasound2_link 100" />
+	<node pkg="tf" type="static_transform_publisher" name="base_link_to_odom_combined" args="0.0 0.00 0.00 0.0 0.0 0.0 /robot_pose_ekf/odom_combined /base_link 100" />
+
+
+</launch>

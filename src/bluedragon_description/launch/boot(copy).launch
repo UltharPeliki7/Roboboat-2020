@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+     <!-- Don't use gui -->
+	<arg name="gui" default="False" />
+	<param name="use_gui" value="$(arg gui)"/>
+
+     <!-- Load bluedragon urdf file -->
+	<param name="bluedragon_description" textfile="/home/monarch/catkin_ws/src/bluedragon_description/urdf/bluedragon.urdf" />
+	<node pkg="robot_state_publisher" type="state_publisher" name="robot_state_node">
+		<remap from="robot_description" to="bluedragon_description" />
+	</node>
+
+</launch>

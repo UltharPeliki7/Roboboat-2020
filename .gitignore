@@ -1,0 +1,11 @@
+*.pyc
+**/*.pyc
+
+build/
+cmake/
+devel/
+
+**/CmakeFiles/
+
+*.active
+

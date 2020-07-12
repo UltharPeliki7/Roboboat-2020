@@ -1,0 +1,17 @@
+
+int32 pr_serial_size
+int32 pr2_serial_size
+int32 cv_serial_size
+int32 ls_serial_size
+int32 tf_serial_size
+int32 ra1_serial_size
+int32 ra2_serial_size
+int32 od_serial_size
+int32 ma_serial_size
+int32 pc_serial_size
+int32 li_serial_size
+int32 ri_serial_size
+int32 oc_serial_size
+int32 im_serial_size
+int32 gp_serial_size
+int32 tp_serial_size 

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>buoy_identifier</name>
+  <version>0.1.0</version>
+  <description>
+    Buoy identifier is a package attempting to identify green and red buoys encountered frequently in marine environments.
+  </description>
+
+  <maintainer email="ozanmertduran@gmail.com">ORENRG</maintainer>
+  <license>MIT</license>
+
+  <url type="website"></url>
+  <url type="repository"></url>
+  <url type="bugtracker"></url>
+
+  <buildtool_depend>catkin</buildtool_depend>    
+ 
+  <depend>roscpp</depend>
+  <depend>rosconsole</depend>
+  <depend>zed_nodelets</depend>.
+ <depend>cv_bridge</depend> 
+ <depend>image_transport</depend>
+ <depend>sensor_msgs</depend>
+<depend>move_base_msgs</depend>
+<depend>actionlib</depend>
+<depend>tf</depend>
+
+
+ <build_depend>geometry_msgs</build_depend>
+ <build_depend>genmsgs</build_depend>
+ <build_depend>message_generation</build_depend>
+ <build_depend>std_msgs_msgs</build_depend>
+<exec_depend>message_runtime</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+
+</package>

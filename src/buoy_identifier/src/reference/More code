@@ -1,0 +1,465 @@
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/videoio.hpp"
+#include <iostream>
+#include <cmath>
+#include <stdio.h>
+#include <ros/ros.h>
+#include <sensor_msgs/Image.h>
+// ZED includes
+#include <sl/Camera.hpp>
+
+// OpenCV includes
+#include <opencv2/opencv.hpp>
+
+// Sample includes
+#include <SaveDepth.hpp>
+using namespace std;
+using namespace sl;
+#define minPix 20
+cv::Mat slMat2cvMat(Mat& input);
+//#include <move_base_msgs/MoveBaseAction.h>
+//#include <actionlib/client/simple_action_client.h>
+//#include <visualization_msgs/Marker.h>
+#define show false
+#include <math.h>       /* atan2 */
+
+const int max_value_H = 360/2;
+const int max_value = 255;
+const String window_capture_name = "Video Capture";
+const String window_detection_name = "Object Detection";
+int low_H = 0, low_S = 0, low_V = 0;
+int high_H = max_value_H, high_S = max_value, high_V = max_value;
+//typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+
+
+//struct to hold HSV values; makes coding cleaner and easier
+struct colorStruct {
+    std::string name; const char* tempName; //name holders
+    int hLow, hHigh, sLow, sHigh, vLow, vHigh;//color values
+    cv::Scalar color;//color to display for this entity
+    std::vector<cv::Point> contour; // Vector for storing contour if found
+    int xEstimate = 0;
+    int yEstimate = 0;
+    float angle;
+    float distance; //why not store it here; note: if error initialize under constructor
+                    //constructor with given formal parameters; trust user to use this
+    colorStruct(std::string Name, int Hlow, int Hhigh, int Slow, int Shigh, int Vlow, int Vhigh, cv::Scalar Color) {
+        name = Name; hLow = Hlow; hHigh = Hhigh; sLow = Slow; sHigh = Shigh; vLow = Vlow; vHigh = Vhigh; color = Color; distance = -1.0;
+    }
+    //function to create a trackbar to adjust HSV
+    void createTrackBar() {
+        tempName = (name + " Trackbar").c_str();
+        cvNamedWindow(tempName);
+        //cvResizeWindow  (tempName, 350, 350);
+        cvCreateTrackbar("H-Low", tempName, &hLow, 255, NULL);//these are the trackbars...
+        cvCreateTrackbar("H-High", tempName, &hHigh, 255, NULL);
+        cvCreateTrackbar("S-Low", tempName, &sLow, 255, NULL);
+        cvCreateTrackbar("S-High", tempName, &sHigh, 255, NULL);
+        cvCreateTrackbar("V-Low", tempName, &vLow, 255, NULL);
+        cvCreateTrackbar("V-High", tempName, &vHigh, 255, NULL);
+    }
+};
+
+
+//function to thresh image using HSV information from struct
+//returns threshed image
+cv::Mat threshHSV(cv::Mat img, colorStruct colorHSV) {
+    cv::Mat imgThreshedHSV;
+    cvtColor(img, imgThreshedHSV, cv::COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
+                                                      //inputImage,scalar(hlow,slow,vlow),scalar(hhigh,shigh,vhigh),outputImage
+    inRange(imgThreshedHSV, cv::Scalar(colorHSV.hLow, colorHSV.sLow, colorHSV.vLow),
+        cv::Scalar(colorHSV.hHigh, colorHSV.sHigh, colorHSV.vHigh), imgThreshedHSV); //Threshold the image in range
+                                                                                     //morphological opening (remove small objects from the foreground)
+    erode(imgThreshedHSV, imgThreshedHSV, getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5)));//<-kernel size
+    dilate(imgThreshedHSV, imgThreshedHSV, getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5)));
+    //morphological closing (fill small holes in the foreground)
+    dilate(imgThreshedHSV, imgThreshedHSV, getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5)));
+    erode(imgThreshedHSV, imgThreshedHSV, getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5)));
+    return imgThreshedHSV;
+}
+
+//find the max contour of the given color
+std::vector<cv::Point> findMaxContour(cv::Mat img, cv::Mat imgThreshed, colorStruct& light) {
+    std::vector< std::vector<cv::Point> > contours; // Vector for storing contour
+    std::vector<cv::Point> blank;
+    std::vector<cv::Vec4i> hierarchy;
+    int largest_area = 0;
+    int largest_contour_index = -1;
+    cv::Rect bounding_rect;
+    // Find the contours in the image
+    cv::findContours(imgThreshed, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+
+    for (int i = 0; i< contours.size(); i++) { // iterate through each contour.
+        double a = contourArea(contours[i], false);  //  Find the area of contour
+        if (a>largest_area) {
+            largest_area = a;
+            largest_contour_index = i;                //Store the index of largest contour
+        }
+    }
+    if (largest_contour_index>-1)
+        return contours[largest_contour_index];//return largest contour
+    else
+        return blank;
+}
+
+
+//find block height/width or distance
+/*
+float findDist(cv::Mat& img, colorStruct& light, int x, int y) {
+
+   // cv::Mat lookUpX = cv::imread("/home/oduasv/Desktop/Test1080/xEst.bmp");
+   // cv::Mat lookUpY = cv::imread("/home/oduasv/Desktop/Test1080/yEst.bmp");
+
+    float distance = -1.0; //use as control
+                           //get rectangle box in order to find width and height regardless of angle
+    cv::RotatedRect box = minAreaRect(light.contour);
+    cv::Point2f vtx[4];
+    box.points(vtx);
+    //width
+    float x = sqrt(pow((vtx[1].x - vtx[0].x), 2) + pow((vtx[1].y - vtx[0].y), 2));
+    //height
+    float y = sqrt(pow((vtx[2].x - vtx[1].x), 2) + pow((vtx[2].y - vtx[1].y), 2));
+
+    if(1){
+        cv::Point2f center;
+        float radius = 0;
+        cv::minEnclosingCircle(light.contour, center, radius);
+x=center.x;
+y=center.y;
+        //find distance
+        // distKnown/radiusKnown=distance/radiusFound
+        //->distance = radiusFound*distKnown/radiusKnown = radiusFound*ratioKnown
+distance=depth_ocv.at<float>(center.x, center.y);
+if((center.x-(depth_ocv.rows/2))<0)
+{light.xEstimate = -(center.x-(depth_ocv.rows/2));}
+else{light.xEstimate = (center.x-(depth_ocv.rows/2));}
+if((center.y-(depth_ocv.cols/2))<0)
+{light.yEstimate = -(center.y-(depth_ocv.cols/2));}
+else{light.yEstimate = (center.y-(depth_ocv.cols/2));}
+//std::cout << depth_ocv.at<float>(depth_ocv.rows/2, depth_ocv.cols/2) << std::endl;
+
+
+
+   //     distance = 2800 * pow(radius, -1.027); //OLD ONE
+      
+
+        cv::circle( img, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
+
+        //draw circle around contour
+        cv::circle(img, center, cvRound(radius), light.color, 1, CV_AA);
+
+        int d = int(radius*2);
+        int w = int(abs(center.x-960));
+        if(d>=350){
+            d=349;
+        }
+        if(w>=920){
+            w=919;
+        }
+        int estimateX =int(lookUpX.at<uchar>(d,w,0));
+        int estimateY =int(lookUpY.at<uchar>(d,w,0));
+
+        if ((center.x -960)<0){
+            light.xEstimate = -estimateX;
+        } else{
+            light.xEstimate = estimateX;
+        }
+        light.yEstimate = estimateY;
+        distance = sqrt(estimateX*estimateX+estimateY*estimateY);
+       
+
+
+
+
+        //create string for output to image
+     /*   char text_array[MAXIMUM_TEXT_SIZE];
+        snprintf(text_array, MAXIMUM_TEXT_SIZE, "%4.2f", estimateY);
+        std::string temp(text_array);
+
+        snprintf(text_array, MAXIMUM_TEXT_SIZE, "%4.2f", estimateX);
+        std::string temp2(text_array);
+
+
+    }
+
+    if ((x + y) / 4>minPix)
+        return distance;
+    else
+        return -1;
+}
+*/
+
+cv::Mat slMat2cvMat(Mat& input) {
+    // Mapping between MAT_TYPE and CV_TYPE
+    int cv_type = -1;
+    switch (input.getDataType()) {
+        case MAT_TYPE::F32_C1: cv_type = CV_32FC1; break;
+        case MAT_TYPE::F32_C2: cv_type = CV_32FC2; break;
+        case MAT_TYPE::F32_C3: cv_type = CV_32FC3; break;
+        case MAT_TYPE::F32_C4: cv_type = CV_32FC4; break;
+        case MAT_TYPE::U8_C1: cv_type = CV_8UC1; break;
+        case MAT_TYPE::U8_C2: cv_type = CV_8UC2; break;
+        case MAT_TYPE::U8_C3: cv_type = CV_8UC3; break;
+        case MAT_TYPE::U8_C4: cv_type = CV_8UC4; break;
+        default: break;
+    }
+void depthCallback(const sensor_msgs::Image::ConstPtr& msg, int x, int y) {
+
+    // Get a pointer to the depth values casting the data
+    // pointer to floating point
+    float* depths = (float*)(&msg->data[0]);
+
+    // Image coordinates of the center pixel
+    int u = msg->x;
+    int v = msg->y;
+
+    // Linear index of the center pixel
+    int centerIdx = u + msg->width * v;
+
+    // Output the measure
+    ROS_INFO("Center distance : %g m", depths[centerIdx]);
+}
+
+//function to find and classify buoys and return 'w' or 's'
+std::string classifyStopLight(cv::Mat img, std::vector<colorStruct>& lights, int x, int y) {
+    cv::Mat threshedImg;
+    std::string botCmd;
+ros::NodeHandle n;
+
+cv::RotatedRect box = minAreaRect(light.contour);
+    cv::Point2f vtx[4];
+    box.points(vtx);
+    //width
+    float x = sqrt(pow((vtx[1].x - vtx[0].x), 2) + pow((vtx[1].y - vtx[0].y), 2));
+    //height
+    float y = sqrt(pow((vtx[2].x - vtx[1].x), 2) + pow((vtx[2].y - vtx[1].y), 2));
+
+    if(1){
+        cv::Point2f center;
+        float radius = 0;
+        cv::minEnclosingCircle(light.contour, center, radius);
+x=center.x;
+y=center.y;
+ros::Subscriber subDepth    = n.subscribe("/zed/zed_node/depth/depth_registered", 10, depthCallback);
+
+distance=depth_ocv.at<float>(center.x, center.y);
+if((center.x-(depth_ocv.rows/2))<0)
+{light.xEstimate = -(center.x-(depth_ocv.rows/2));}
+else{light.xEstimate = (center.x-(depth_ocv.rows/2));}
+if((center.y-(depth_ocv.cols/2))<0)
+{light.yEstimate = -(center.y-(depth_ocv.cols/2));}
+else{light.yEstimate = (center.y-(depth_ocv.cols/2));}
+//std::cout << depth_ocv.at<float>(depth_ocv.rows/2, depth_ocv.cols/2) << std::endl;
+
+        cv::circle( img, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
+
+        //draw circle around contour
+        cv::circle(img, center, cvRound(radius), light.color, 1, CV_AA);
+
+
+
+
+
+
+
+
+
+    for (int i = 0; i<lights.size(); i++) {
+
+        threshedImg = threshHSV(img, lights[i]);
+        if (show)
+            imshow("Thresholded Image " + lights[i].name, threshedImg); //show the thresholded image
+                                                                        //method contours
+        lights[i].contour = findMaxContour(img, threshedImg, lights[i]);
+        if (lights[i].contour.size()>0) {
+            lights[i].distance = findDist(img, lights[i], x, y);
+            cv::imshow("Buoy Detection", img); //show the boxed image
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+            ///////////////////output
+            double distanceEstimate =0;
+            double angleEstimate = 0;
+            if (lights[i].xEstimate!=0 && lights[i].yEstimate!=0){
+                distanceEstimate = lights[i].distance;
+                angleEstimate = atan((double)(lights[i].xEstimate))*180.0/3.14159265;
+			lights[i].angle=angleEstimate;
+                if(i==0){
+                    std::cout<<"RED"<<std::endl;
+                } else if (i==1){
+                    std::cout<<"GREEN"<<std::endl;
+                }
+                std::cout<<"distance  => "<<distanceEstimate<<std::endl;
+                std::cout<<"angle  => "<<angleEstimate<<std::endl;
+             }
+             /////////////////////////////////////////////////////////////////////////////////////////////////
+             ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+        }
+    }
+
+// move_base_msgs::MoveBaseGoal goal;
+
+  //we'll send a goal to the robot to move 1 meter forward
+ // goal.target_pose.header.frame_id = "base_link";
+ // goal.target_pose.header.stamp = ros::Time::now();
+
+if((lights[0].angle<0)&&(lights[1].angle>0))//Red buoy on left, green on right
+{
+if((lights[0].angle+lights[1].angle)>0)//if the sum of the two angles is greater than 0, it is pointed more towards the green buoy
+{std::cout<<"Going forward left"<<std::endl;
+//set goal x distance away but slightly to the left
+}
+if((lights[0].angle+lights[1].angle)<0)
+{std::cout<<"Going forward right"<<std::endl;
+//set goal x distance away but slightly to the right
+}
+}
+if((lights[0].angle>0)&&(lights[1].angle>0)) //if both buoys are to the right
+{std::cout<<"Going right forward"<<std::endl;
+//set goal to go forward and to the right
+}
+if((lights[0].angle<0)&&(lights[1].angle<0)) //if both buoys are to the left
+{std::cout<<"Going left forward"<<std::endl;
+//set goal to go forward and to the left
+}
+
+
+
+
+
+//goal.target_pose.pose.position.x = 1.0;
+//goal.target_pose.pose.orientation.w = 1.0;
+
+ // ROS_INFO("Sending goal");
+ // ac.sendGoal(goal);
+
+  /*  if ((lights[0].distance>0) && (lights[0].distance<minDist)) {
+        counter = counter + 1;
+
+    }
+    if (counter > 7)
+    {
+        counter = 0;
+        return "s";
+    }
+
+    else if((lights[1].distance>0)&&(lights[1].distance<minDist)){
+
+    }
+
+*/
+
+    return "good";
+}
+
+
+
+
+int main(int argc, char* argv[])
+{ 
+std::string botCmd;
+std::vector< colorStruct > lights;
+int x;
+int y;
+ /**
+     * The ros::init() function needs to see argc and argv so that it can perform
+     * any ROS arguments and name remapping that were provided at the command line.
+     * For programmatic remappings you can use a different version of init() which takes
+     * remappings directly, but for most command-line programs, passing argc and argv is
+     * the easiest way to do it.  The third argument to init() is the name of the node.
+     *
+     * You must call one of the versions of ros::init() before using any other
+     * part of the ROS system.
+     */
+    ros::init(argc, argv, "zed_video_subscriber");
+
+    /**
+     * NodeHandle is the main access point to communications with the ROS system.
+     * The first NodeHandle constructed will fully initialize this node, and the last
+     * NodeHandle destructed will close down the node.
+     */
+    ros::NodeHandle n;
+
+//zed stuff
+  Camera zed;
+
+    // Set configuration parameters
+    InitParameters init_params;
+    init_params.camera_resolution = RESOLUTION::HD1080;
+    init_params.depth_mode = DEPTH_MODE::ULTRA;
+    init_params.coordinate_units = UNIT::METER;
+    if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
+      
+    // Open the camera
+    ERROR_CODE err = zed.open(init_params);
+    if (err != ERROR_CODE::SUCCESS) {
+        printf("%s\n", toString(err).c_str());
+        zed.close();
+        return 1; // Quit if an error occurred
+    }
+ RuntimeParameters runtime_parameters;
+    runtime_parameters.sensing_mode = SENSING_MODE::STANDARD; 
+Resolution image_size = zed.getCameraInformation().camera_resolution;
+   // To share data between sl::Mat and cv::Mat, use slMat2cvMat()
+    // Only the headers and pointer to the sl::Mat are copied, not the data itself
+    Mat image_zed(image_size.width, image_size.height, MAT_TYPE::U8_C4);
+    cv::Mat image_ocv = slMat2cvMat(image_zed);
+
+
+
+
+      //Red high level
+      lights.push_back(colorStruct ("redhigh",165,255,146,255,98,255,cv::Scalar(0,0,255)));
+
+    //Green
+    lights.push_back(colorStruct("green", 37, 100, 100, 255, 77, 190, cv::Scalar(0, 255, 0)));
+
+ros::init(argc, argv, "simple_navigation_goals");
+  ros::NodeHandle n;
+ /*
+  //tell the action client that we want to spin a thread by default
+  MoveBaseClient ac("move_base", true);
+
+  //wait for the action server to come up
+  while(!ac.waitForServer(ros::Duration(5.0))){
+    ROS_INFO("Waiting for the move_base action server to come up");
+  }
+
+*/
+
+    VideoCapture cap(argc > 1 ? atoi(argv[1]) : 0);
+    namedWindow(window_capture_name);
+    namedWindow(window_detection_name);
+
+    Mat frame, frame_HSV, frame_threshold;
+    while (ros::ok())
+  {
+   
+
+if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
+
+            // Retrieve the left image
+            zed.retrieveImage(image_zed, VIEW::LEFT);
+zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA);
+        cap >> frame;
+
+        // Convert from BGR to HSV colorspace
+       
+botCmd = classifyStopLight(frame, lights,x,y);
+     sl::float4 point_cloud_value;
+            point_cloud.getValue(lights[0]., y, &point_cloud_value);
+
+        // Show the frames
+        imshow(window_capture_name, frame);
+     //   imshow(window_detection_name, frame_threshold);
+        char key = (char) waitKey(30);
+        if (key == 'q' || key == 27)
+        {
+            break;
+        }
+    }
+    return 0;
+}

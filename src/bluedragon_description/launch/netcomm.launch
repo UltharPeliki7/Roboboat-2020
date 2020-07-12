@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+     <!-- Create NETCOMM node -->
+     <!-- Listens to: scan odom_combined range map propulsion near_objects -->
+     <!-- Publishes : /netcomm or to udp network sockets -->
+     <node name="netcomm" pkg="bluedragon_netcomm" type="netcomm" output="screen" />
+</launch>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+     <!-- listen for messages on the intranet -->
+     <node name="netcomm" pkg="bluedragon_netcomm" type="netcomm_receiver" />
+
+</launch>

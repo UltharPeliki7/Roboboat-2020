@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+<!-- Create record of all inputs using rosbag -->  
+<!-- Saves a bag file to /home/monarch/bluedragon_description for playback -->
+<node pkg="rosbag" type="record" name="bluedragon_bag" args=" -o $(find bluedragon_description)/bags/bluedragon_bag.bag /clock /robot_pose_ekf/odom_combined /scan /imu_data /left_propulsion /right_propulsion /zed/point_cloud/point_cloud_registered /zed/left/image_rect_color /zed/right/image_rect_color /tf /diagnostics" /> 
+
+</launch>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+     <!-- Create Serial Node for Throttle  -->
+     <!-- Listens to: propulsion -->
+     <!-- Publishes : throttle control message to  motor controller arduino -->
+	<node name="throttle_node" type="serial_node.py" pkg="rosserial_python">
+	 <param name="port" value="/dev/sensorTHROTTLE" />
+	</node>
+</launch>

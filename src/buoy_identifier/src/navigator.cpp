@@ -116,6 +116,8 @@ int main(int argc, char** argv)
     move_base_msgs::MoveBaseGoal goal;
     while(ros::ok())
     {   
+        goal.target_pose.header.frame_id = "/map";
+        goal.target_pose.header.stamp = ros::Time::now();
         modifyGoal(&goal);
         // if(reddist > 1.0 && greendist > 1.0)
         // {

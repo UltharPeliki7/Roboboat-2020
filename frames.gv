@@ -1,0 +1,24 @@
+digraph G {
+"base_footprint" -> "Humidity_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_link" -> "base_footprint"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "gps_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "imu_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "laser_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "left_thruster_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "right_thruster_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "temp_1_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "ultrasound1_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"base_footprint" -> "ultrasound2_link"[label="Broadcaster: /robot_state_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"odom" -> "zed_link"[label="Broadcaster: /zed/zed_node\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_link" -> "zed_camera_center"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_camera_center" -> "zed_left_camera_frame"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_left_camera_frame" -> "zed_left_camera_optical_frame"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_camera_center" -> "zed_right_camera_frame"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_right_camera_frame" -> "zed_right_camera_optical_frame"[label="Broadcaster: /zed/zed_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1588605416.433 sec old)\nBuffer length: 0.000 sec\n"];
+"map" -> "odom"[label="Broadcaster: /zed/zed_node\nAverage rate: 4890000.000 Hz\nMost recent transform: 1588605403.315 ( 13.118 sec old)\nBuffer length: 0.000 sec\n"];
+"zed_link" -> "zed_current_frame"[label="Broadcaster: /zed_link_to_zed_current_frame\nAverage rate: 10.192 Hz\nMost recent transform: 1588605416.514 ( -0.082 sec old)\nBuffer length: 4.906 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1588605416.433"[ shape=plaintext ] ;
+ }->"map";
+}
