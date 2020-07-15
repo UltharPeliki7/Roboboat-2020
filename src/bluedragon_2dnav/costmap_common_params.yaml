@@ -1,0 +1,11 @@
+obstacle_range: 5
+raytrace_range: 3.0
+footprint: [[0, 0.9], [0.3,-0.9], [-0.3, -0.9]]
+#robot_radius: 1
+inflation_radius: 0.125
+
+observation_sources: laser_scan_sensor point_cloud_sensor
+
+laser_scan_sensor: {sensor_frame: base_link, data_type: LaserScan, topic: /scan, marking: true, clearing: true}
+
+point_cloud_sensor: {sensor_frame: base_link, data_type: PointCloud2, topic: /zed/zed_node/point_cloud/cloud_registered, marking: true, clearing: true}
