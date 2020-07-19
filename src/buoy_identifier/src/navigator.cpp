@@ -298,15 +298,17 @@ int main(int argc, char **argv)
             ROS_INFO("Sending goal");
             ac.sendGoal(*current_goal);
             ac.waitForResult();
-        }
 
-        if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-        {
-            ROS_INFO("Hooray, the base moved somewhere");
-        }
-        else
-        {
-            ROS_INFO("The base failed to move forward for some reason");
+            // It only ever makes sense to check state after we assign current_goal to something
+            if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+            {
+                ROS_INFO("Hooray, the base moved somewhere");
+            }
+            else
+            {
+                ROS_INFO("The base failed to move forward for some reason");
+            }
+
         }
 
         ros::spinOnce();
