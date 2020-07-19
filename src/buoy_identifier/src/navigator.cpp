@@ -80,7 +80,9 @@ float yvect;
             ROS_INFO("We must circle around the two buoys");
             // We must circle around the two buoys. First move to the right of red and rotate 180 deg,
 
-			if(reddist>greendist) {//if the red buoy is further than the green buoy, then we want to go to the left of the green buoy. Otherwise, the right side.
+			if(reddist>greendist) //we set 4 goals going around the left side of the green buoy and through the buoys. A is to the left, B is above, C is in line but behind the midpoint, D is through the midpoint.
+{
+//if the red buoy is further than the green buoy, then we want to go to the left of the green buoy. Otherwise, the right side.
 //find midpoint between red and green buoy using vectors
 //half that vector and subtract it from the closer point to obtain first goal. Add half the orthogonal vector to closer point to get second point. Add 1/4 orthogonal vector to midpoint to get third point, and subtract 1/4 orthogonal vector from midpoint to get final point.
 xvect=(red_x-green_x)/2; //we're always going to be using the distance to the midpoint as a constant distance to hold to goals.
@@ -88,19 +90,21 @@ yvect=(red_y-green_y)/2;
 
 
 if(distance(green_x-xvect, greeny+yvect, 0,0)>distance(green_x+xvect, greeny-yvect, 0,0))
-{target_x=(green_x-xvect);
+{
+target_x=(green_x-xvect);
 target_y=(green_y+yvect);
-float target_x1=green_x;
-float target_y1=green_y+(2*y_vect);
-float target_x2=green_x+(2*x_vect);
-float target_y2=green_y;
+target_x1=green_x;
+target_y1=green_y+(2*y_vect);
+target_x2=green_x+(2*x_vect);
+target_y2=green_y;
 }
-else{target_x=(green_x+xvect);
+else{
+target_x=(green_x+xvect);
 target_y=(green_y-yvect);
-float target_x2=green_x;
-float target_y2=green_y+(2*y_vect);
-float target_x1=green_x+(2*x_vect);
-float target_y1=green_y;
+target_x2=green_x;
+target_y2=green_y+(2*y_vect);
+target_x1=green_x+(2*x_vect);
+target_y1=green_y;
 }
 goal->target_pose.pose.position.x = target_y2;
 goal->target_pose.pose.position.y = -target_x2;
@@ -121,7 +125,49 @@ goal->target_pose.pose.position.y = -target_x;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal A put into stack
 }
+else //if(reddist<greendist) we set 4 goals going around the right side of the red buoy and through the buoys. E is to the right, F is above, C is in line but behind the midpoint, D is through the midpoint.
+{
+xvect=(-red_x+green_x)/2; //we're always going to be using the distance to the midpoint as a constant distance to hold to goals.
+yvect=(-red_y+green_y)/2;
+if(distance(red_x-xvect, redy+yvect, 0,0)>distance(red_x+xvect, redy-yvect, 0,0))
+{
+target_x=(red_x-xvect);
+target_y=(red_y+yvect);
+target_x1=red_x;
+target_y1=red_y+(2*y_vect);
+target_x2=red_x+(2*x_vect);
+target_y2=red_y;
+}
+else{
+target_x=(red_x+xvect);
+target_y=(red_y-yvect);
+target_x2=red_x;
+target_y2=red_y+(2*y_vect);
+target_x1=red_x+(2*x_vect);
+target_y1=red_y;
+}
 
+goal->target_pose.pose.position.x = target_y2;
+goal->target_pose.pose.position.y = -target_x2;
+goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+goals.push_back(goal); //Goal D put into stack
+goal->target_pose.pose.position.x = target_y1;
+goal->target_pose.pose.position.y = -target_x1;
+goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+goals.push_back(goal); //Goal C put into stack
+goal->target_pose.pose.position.x = target_y;
+goal->target_pose.pose.position.y = -target_x;
+goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+goals.push_back(goal); //Goal F put into stack
+target_x=(red_x-xvect); 
+target_y=(red_y-yvect);
+goal->target_pose.pose.position.x = target_y;
+goal->target_pose.pose.position.y = -target_x;
+goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+goals.push_back(goal); //Goal E put into stack
+}
+
+}
           
 		ROS_INFO("target_x= " , target_x);
 		ROS_INFO("target_y= " , target_y);
