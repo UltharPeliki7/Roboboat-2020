@@ -89,21 +89,21 @@ xvect=(red_x-green_x)/2; //we're always going to be using the distance to the mi
 yvect=(red_y-green_y)/2;
 
 
-if(distance(green_x-xvect, greeny+yvect, 0,0)>distance(green_x+xvect, greeny-yvect, 0,0))
+if(distance(green_x-xvect, green_y+yvect, 0,0)>distance(green_x+xvect, green_y-yvect, 0,0))
 {
 target_x=(green_x-xvect);
 target_y=(green_y+yvect);
 target_x1=green_x;
-target_y1=green_y+(2*y_vect);
-target_x2=green_x+(2*x_vect);
+target_y1=green_y+(2 * yvect);
+target_x2=green_x+(2 * xvect);
 target_y2=green_y;
 }
 else{
 target_x=(green_x+xvect);
 target_y=(green_y-yvect);
 target_x2=green_x;
-target_y2=green_y+(2*y_vect);
-target_x1=green_x+(2*x_vect);
+target_y2=green_y+(2 * yvect);
+target_x1=green_x+(2 * xvect);
 target_y1=green_y;
 }
 
@@ -135,21 +135,21 @@ else //if(reddist<greendist) we set 4 goals going around the right side of the r
 {
 xvect=(-red_x+green_x)/2; //we're always going to be using the distance to the midpoint as a constant distance to hold to goals.
 yvect=(-red_y+green_y)/2;
-if(distance(red_x-xvect, redy+yvect, 0,0)>distance(red_x+xvect, redy-yvect, 0,0))
+if(distance(red_x-xvect, red_y+yvect, 0,0)>distance(red_x+xvect, red_y-yvect, 0,0))
 {
 target_x=(red_x-xvect);
 target_y=(red_y+yvect);
 target_x1=red_x;
-target_y1=red_y+(2*y_vect);
-target_x2=red_x+(2*x_vect);
+target_y1=red_y+(2 * yvect);
+target_x2=red_x+(2 * xvect);
 target_y2=red_y;
 }
 else{
 target_x=(red_x+xvect);
 target_y=(red_y-yvect);
 target_x2=red_x;
-target_y2=red_y+(2*y_vect);
-target_x1=red_x+(2*x_vect);
+target_y2=red_y+(2 * yvect);
+target_x1=red_x+(2 * xvect);
 target_y1=red_y;
 }
 
