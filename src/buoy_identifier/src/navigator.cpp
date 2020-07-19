@@ -15,7 +15,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 
 
 // Global memory
-std::vector<move_base_msgs::MoveBaseGoal> goals;
+std::vector<move_base_msgs::MoveBaseGoal*> goals;
 int count;
 std::string greens, reds, color;
 float greenang, redang, greendist, reddist;
