@@ -12,7 +12,7 @@
 #include <stdbool.h>
 int count;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
- std::vector<move_base_msgs::MoveBaseGoal> goals;
+typedef std::vector<move_base_msgs::MoveBaseGoal> goals;
 void spinThread()
 {
     ros::spin();
