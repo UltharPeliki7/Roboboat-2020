@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
+<!-- <node name="static_tf0" pkg="tf" type="static_transform_publisher" args="2 0 0 0 0 0 /map /base_footprint 10"/> -->
+
   <!--- Run AMCL -->
-  <include file="$(find amcl)/examples/amcl_omni.launch" />
+  <include file="$(find amcl)/examples/amcl_diff.launch" />
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <rosparam file="$(find bluedragon_2dnav)/costmap_common_params.yaml" command="load" ns="global_costmap" />
@@ -10,6 +12,7 @@
     <rosparam file="$(find bluedragon_2dnav)/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find bluedragon_2dnav)/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find bluedragon_2dnav)/base_local_planner_params.yaml" command="load" />
+  <!-- <rosparam file="$(find bluedragon_2dnav)/minimal.yaml" command="load" ns="/costmap_node/costmap" /> -->
   </node>
 </launch>
 

@@ -24,21 +24,16 @@
    <inertia ixx="1" ixy="1" ixz="0" iyy="1" iyz="0" izz="1" />
   </inertial> 
  </link>
-</link>
+
+<link name="base_link">
+  <visual>
+  <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+ </link>
  <joint name="base_joint" type="fixed">
  <origin xyz="0 0.0 0" rpy="0.0 0.0 0.0"/>
  <parent link="base_link"/>
  <child link="base_footprint"/>
 </joint>
-
-
-
-
-
-
-
-
-
  <!-- <link name="zed_link">
   <visual>
    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>

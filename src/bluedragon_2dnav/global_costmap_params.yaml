@@ -3,7 +3,7 @@ global_costmap:
   robot_base_frame: base_footprint
   update_frequency: 4.0
   static_map: false
-  width: 200.0
-  height: 200.0
+  width: 50.0
+  height: 50.0
 origin_x: -10.0
 origin_y: -10.0
