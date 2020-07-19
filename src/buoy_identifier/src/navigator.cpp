@@ -106,24 +106,30 @@ target_y2=green_y+(2*y_vect);
 target_x1=green_x+(2*x_vect);
 target_y1=green_y;
 }
+
 goal->target_pose.pose.position.x = target_y2;
 goal->target_pose.pose.position.y = -target_x2;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal D put into stack
+ROS_INFO("Initialized goal D");
+
 goal->target_pose.pose.position.x = target_y1;
 goal->target_pose.pose.position.y = -target_x1;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal C put into stack
+ROS_INFO("Initialized goal C");
 goal->target_pose.pose.position.x = target_y;
 goal->target_pose.pose.position.y = -target_x;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal B put into stack
+ROS_INFO("Initialized goal B");
 target_x=(green_x-xvect); 
 target_y=(green_y-yvect);
 goal->target_pose.pose.position.x = target_y;
 goal->target_pose.pose.position.y = -target_x;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal A put into stack
+ROS_INFO("Initialized goal A");
 }
 else //if(reddist<greendist) we set 4 goals going around the right side of the red buoy and through the buoys. E is to the right, F is above, C is in line but behind the midpoint, D is through the midpoint.
 {
@@ -151,43 +157,40 @@ goal->target_pose.pose.position.x = target_y2;
 goal->target_pose.pose.position.y = -target_x2;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal D put into stack
+ROS_INFO("Initialized goal D");
 goal->target_pose.pose.position.x = target_y1;
 goal->target_pose.pose.position.y = -target_x1;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal C put into stack
+ROS_INFO("Initialized goal C");
 goal->target_pose.pose.position.x = target_y;
 goal->target_pose.pose.position.y = -target_x;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal F put into stack
+ROS_INFO("Initialized goal F");
 target_x=(red_x-xvect); 
 target_y=(red_y-yvect);
 goal->target_pose.pose.position.x = target_y;
 goal->target_pose.pose.position.y = -target_x;
 goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
 goals.push_back(goal); //Goal E put into stack
+ROS_INFO("Initialized goal E");
 }
 
 }
           
-		ROS_INFO("target_x= " , target_x);
-		ROS_INFO("target_y= " , target_y);
-            goal->target_pose.pose.position.x = target_y;
-            goal->target_pose.pose.position.y = -target_x;
-            goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 2.0);
-            // ^ TODO confirm orientation points towards the buoys
-
         }
     }
     else if (have_red) {
-        ROS_INFO("Rotate until we see both");
+        ROS_INFO("Rotate until we see both, we see only red");
         goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
     }
     else if (have_green) {
-        ROS_INFO("Rotate until we see both");
+        ROS_INFO("Rotate until we see both, we see only green");
         goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
     }
     else {
-        ROS_INFO("Rotate until we see both");
+        ROS_INFO("Rotate until we see both, we see no buoys");
         goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
     }
 
