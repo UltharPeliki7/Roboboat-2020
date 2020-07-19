@@ -17,12 +17,13 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 //FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES
 bool test=true;//used to set test condition
 bool left=true; //when left is true, test condition is green buoy on the left, red on the right, which flip flops which buoy gets assigned left_test_x and left_test_y etc.
-float left_test_x=2.5;
-float right_test_x=4.5;
-float left_test_y=2;
-float right_test_y=-0.5;
-float leftdist=2.25;
-float rightdist=4.25;
+float left_test_x=-2.5; //IT IS IMPORTANT TO NOTE THAT THESE ARE RELATIVE(not with respect to /map, but to the robot(eg: x=1 y=2 is one meter to the right and 2 meters forward)) 
+float left_test_y=5;
+														//X Y POSITIONS, SET ACCORDINGLY
+float right_test_x=2.5;
+float right_test_y=4;
+float leftdist=5;
+float rightdist=4.0;
 //FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES
 
 
@@ -68,11 +69,12 @@ if(test) //FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR
 		redang=20;
 		greenang=-20;
 		green_x=left_test_x;
-		red_x=right_test_x;
 		green_y=left_test_y;
+
+		red_x=right_test_x;
 		red_y=right_test_y;
-		reddist=leftdist;
-		greendist=rightdist;
+		reddist=rightdist;
+		greendist=leftdist;
 		}
 	else
 		{
@@ -82,8 +84,8 @@ if(test) //FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR
 		red_x=left_test_x;
 		green_y=right_test_y;
 		red_y=left_test_y;
-		reddist=rightdist;
-		greendist=leftdist;
+		reddist=leftdist;
+		greendist=rightdist;
 		}
 }
 }
@@ -284,7 +286,7 @@ int main(int argc, char **argv)
     boost::thread spin_thread = boost::thread(boost::bind(&spinThread));
 
     MoveBaseClient ac("move_base", true);
-
+float count;
     ros::Subscriber redBuoySub = n.subscribe("/redbuoy_publisher", 1000, buoyMsg_callback);
     std::cout << "created subscriber for redbuoy" << std::endl;
     ros::Subscriber greenBuoySub = n.subscribe("/greenbuoy_publisher", 1000, buoyMsg_callback);
@@ -330,8 +332,8 @@ greenmarker.ns = "my_namespace";
 greenmarker.id = 0;
 greenmarker.type = visualization_msgs::Marker::SPHERE;
 greenmarker.action = visualization_msgs::Marker::ADD;
-greenmarker.pose.position.x = green_x;
-greenmarker.pose.position.y = green_y;
+greenmarker.pose.position.x = green_y;
+greenmarker.pose.position.y = -green_x;
 greenmarker.pose.position.z = 0;
 greenmarker.pose.orientation.x = 0.0;
 greenmarker.pose.orientation.y = 0.0;
@@ -354,8 +356,8 @@ redmarker.ns = "my_namespace";
 redmarker.id = 1;
 redmarker.type = visualization_msgs::Marker::SPHERE;
 redmarker.action = visualization_msgs::Marker::ADD;
-redmarker.pose.position.x = red_x;
-redmarker.pose.position.y = red_y;
+redmarker.pose.position.x = red_y;
+redmarker.pose.position.y = -red_x;
 redmarker.pose.position.z = 0;
 redmarker.pose.orientation.x = 0.0;
 redmarker.pose.orientation.y = 0.0;
@@ -380,13 +382,13 @@ red_pub.publish( redmarker );
 
 
 
-        goalA.target_pose.header.frame_id = "/map";
+        goalA.target_pose.header.frame_id = "base_link";
         goalA.target_pose.header.stamp = ros::Time::now();
-        goalB.target_pose.header.frame_id = "/map";
+        goalB.target_pose.header.frame_id = "base_link";
         goalB.target_pose.header.stamp = ros::Time::now();
-        goalC.target_pose.header.frame_id = "/map";
+        goalC.target_pose.header.frame_id = "base_link";
         goalC.target_pose.header.stamp = ros::Time::now();
-        goalD.target_pose.header.frame_id = "/map";
+        goalD.target_pose.header.frame_id = "base_link";
         goalD.target_pose.header.stamp = ros::Time::now();
 
         if(goals.empty())
@@ -394,11 +396,15 @@ red_pub.publish( redmarker );
             // createGoals is responsible for putting as many of these as it feels
             // is necessary on the queue goals.
             createGoals(&goalA, &goalB, &goalC, &goalD);
+count=0;
         }
         else
         {
             current_goal = goals.back();
+			
             goals.pop_back();
+		ROS_INFO("Sent goal %g", count);
+count=count+1;
         }
 
         if (current_goal != NULL) {
