@@ -93,6 +93,7 @@ add_dependencies(main buoy_identifier_generate_messages_cpp)
 add_executable(navigator ${CMAKE_CURRENT_SOURCE_DIR}/src/navigator.cpp)
 target_link_libraries(navigator ${LINK_LIBRARIES})
 add_dependencies(navigator buoy_identifier_generate_messages_cpp)
+
 FILE(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 ###############################################################################

@@ -10,8 +10,21 @@
 #include <vector>
 #include <cmath>
 #include <stdbool.h>
-
+#include <visualization_msgs/Marker.h>
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+
+
+//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES
+bool test=true;//used to set test condition
+bool left=true; //when left is true, test condition is green buoy on the left, red on the right, which flip flops which buoy gets assigned left_test_x and left_test_y etc.
+float left_test_x=2.5;
+float right_test_x=4.5;
+float left_test_y=2;
+float right_test_y=-0.5;
+float leftdist=2.25;
+float rightdist=4.25;
+//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES
+
 
 
 // Global memory
@@ -45,11 +58,38 @@ void buoyMsg_callback(const buoy_identifier::Buoy &msg)
         green_x = msg.rel_vect_len_x;
         green_y = msg.rel_vect_len_y;
     }
+if(test) //FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES//FOR TESTING PURPOSES
+{
+	reds="red";
+	greens="green";
+	
+	if(left)
+		{
+		redang=20;
+		greenang=-20;
+		green_x=left_test_x;
+		red_x=right_test_x;
+		green_y=left_test_y;
+		red_y=right_test_y;
+		reddist=leftdist;
+		greendist=rightdist;
+		}
+	else
+		{
+		redang=-20;
+		greenang=20;
+		green_x=right_test_x;
+		red_x=left_test_x;
+		green_y=right_test_y;
+		red_y=left_test_y;
+		reddist=rightdist;
+		greendist=leftdist;
+		}
 }
-
+}
 float distance(int x1, int y1, int x2, int y2)
 {
-    // Calculating distance
+    // Calculating distance between two points
     return sqrt(pow(x2 - x1, 2) +
                 pow(y2 - y1, 2) * 1.0);
 }
@@ -99,7 +139,7 @@ void createGoals(
             // We must circle around the two buoys. First move to the right of red and rotate 180 deg,
 
             if(reddist > greendist) //we set 4 goals going around the left side of the green buoy and through the buoys. A is to the left, B is above, C is in line but behind the midpoint, D is through the midpoint.
-            {
+            {ROS_INFO("Calculating path around green buoy");
                 //if the red buoy is further than the green buoy, then we want to go to the left of the green buoy. Otherwise, the right side.
                 //find midpoint between red and green buoy using vectors
                 //half that vector and subtract it from the closer point to obtain first goal. Add half the orthogonal vector to closer point to get second point. Add 1/4 orthogonal vector to midpoint to get third point, and subtract 1/4 orthogonal vector from midpoint to get final point.
@@ -131,17 +171,22 @@ void createGoals(
                 goalD->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalD); //Goal D put into stack
                 ROS_INFO("Initialized goal D");
-
+			ROS_INFO("X distance : %g m", target_y2);
+			ROS_INFO("Y distance : %g m", -target_x2);
                 goalC->target_pose.pose.position.x = target_y1;
                 goalC->target_pose.pose.position.y = -target_x1;
                 goalC->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalC); //Goal C put into stack
                 ROS_INFO("Initialized goal C");
+			ROS_INFO("X distance : %g m", target_y1);
+			ROS_INFO("Y distance : %g m", -target_x1);
                 goalB->target_pose.pose.position.x = target_y;
                 goalB->target_pose.pose.position.y = -target_x;
                 goalB->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalB); //Goal B put into stack
                 ROS_INFO("Initialized goal B");
+			ROS_INFO("X distance : %g m", target_y);
+			ROS_INFO("Y distance : %g m", -target_x);
                 target_x = (green_x - xvect);
                 target_y = (green_y - yvect);
                 goalA->target_pose.pose.position.x = target_y;
@@ -149,9 +194,11 @@ void createGoals(
                 goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalA); //Goal A put into stack
                 ROS_INFO("Initialized goal A");
+			ROS_INFO("X distance : %g m", target_y);
+			ROS_INFO("Y distance : %g m", -target_x);
             }
             else //if(reddist<greendist) we set 4 goals going around the right side of the red buoy and through the buoys. E is to the right, F is above, C is in line but behind the midpoint, D is through the midpoint.
-            {
+            {ROS_INFO("Calculating path around red buoy");
                 xvect = (-red_x + green_x) / 2; //we're always going to be using the distance to the midpoint as a constant distance to hold to goals.
                 yvect = (-red_y + green_y) / 2;
                 if(distance(red_x - xvect, red_y + yvect, 0, 0) > distance(red_x + xvect, red_y - yvect, 0, 0))
@@ -178,16 +225,22 @@ void createGoals(
                 goalD->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalD); //Goal D put into stack
                 ROS_INFO("Initialized goal D");
+			ROS_INFO("X distance : %g m", target_y2);
+			ROS_INFO("Y distance : %g m", -target_x2);
                 goalC->target_pose.pose.position.x = target_y1;
                 goalC->target_pose.pose.position.y = -target_x1;
                 goalC->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalC); //Goal C put into stack
                 ROS_INFO("Initialized goal C");
+			ROS_INFO("X distance : %g m", target_y1);
+			ROS_INFO("Y distance : %g m", -target_x1);
                 goalB->target_pose.pose.position.x = target_y;
                 goalB->target_pose.pose.position.y = -target_x;
                 goalB->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalB); //Goal F put into stack
                 ROS_INFO("Initialized goal F");
+			ROS_INFO("X distance : %g m", target_y);
+			ROS_INFO("Y distance : %g m", -target_x);
                 target_x = (red_x - xvect);
                 target_y = (red_y - yvect);
                 goalA->target_pose.pose.position.x = target_y;
@@ -195,6 +248,8 @@ void createGoals(
                 goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
                 goals.push_back(goalA); //Goal E put into stack
                 ROS_INFO("Initialized goal E");
+			ROS_INFO("X distance : %g m", target_y);
+			ROS_INFO("Y distance : %g m", -target_x);
             }
 
         }
@@ -236,6 +291,15 @@ int main(int argc, char **argv)
     std::cout << "created publisher for greenbuoy" << std::endl;
     ros::Rate loop_rate(5); //10 messages per second
 
+	ros::Publisher green_pub = n.advertise<visualization_msgs::Marker>( "green_buoy", 0 ); //we want to mark the positions of the buoys
+	ros::Publisher red_pub = n.advertise<visualization_msgs::Marker>( "red_buoy", 0 );
+
+
+
+
+
+
+
 
 
     //give some time for connections to register
@@ -252,8 +316,70 @@ int main(int argc, char **argv)
 
     move_base_msgs::MoveBaseGoal* current_goal = NULL;
 
+
+
+visualization_msgs::Marker greenmarker;
+visualization_msgs::Marker redmarker;
     while(ros::ok())
     {
+
+
+greenmarker.header.frame_id = "base_link";
+greenmarker.header.stamp = ros::Time();
+greenmarker.ns = "my_namespace";
+greenmarker.id = 0;
+greenmarker.type = visualization_msgs::Marker::SPHERE;
+greenmarker.action = visualization_msgs::Marker::ADD;
+greenmarker.pose.position.x = green_x;
+greenmarker.pose.position.y = green_y;
+greenmarker.pose.position.z = 0;
+greenmarker.pose.orientation.x = 0.0;
+greenmarker.pose.orientation.y = 0.0;
+greenmarker.pose.orientation.z = 0.0;
+greenmarker.pose.orientation.w = 1.0;
+greenmarker.scale.x = 0.3;
+greenmarker.scale.y = 0.3;
+greenmarker.scale.z = 0.3;
+greenmarker.color.a = 1.0; // Don't forget to set the alpha!
+greenmarker.color.r = 0.0;
+greenmarker.color.g = 1.0;
+greenmarker.color.b = 0.0;
+//only if using a MESH_RESOURCE marker type:
+//marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+green_pub.publish( greenmarker );
+
+redmarker.header.frame_id = "base_link";
+redmarker.header.stamp = ros::Time();
+redmarker.ns = "my_namespace";
+redmarker.id = 1;
+redmarker.type = visualization_msgs::Marker::SPHERE;
+redmarker.action = visualization_msgs::Marker::ADD;
+redmarker.pose.position.x = red_x;
+redmarker.pose.position.y = red_y;
+redmarker.pose.position.z = 0;
+redmarker.pose.orientation.x = 0.0;
+redmarker.pose.orientation.y = 0.0;
+redmarker.pose.orientation.z = 0.0;
+redmarker.pose.orientation.w = 1.0;
+redmarker.scale.x = 0.3;
+redmarker.scale.y = 0.3;
+redmarker.scale.z = 0.3;
+redmarker.color.a = 1.0; // Don't forget to set the alpha!
+redmarker.color.r = 1.0;
+redmarker.color.g = 0.0;
+redmarker.color.b = 0.0;
+//only if using a MESH_RESOURCE marker type:
+//marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+red_pub.publish( redmarker );
+
+
+
+
+
+
+
+
+
         goalA.target_pose.header.frame_id = "/map";
         goalA.target_pose.header.stamp = ros::Time::now();
         goalB.target_pose.header.frame_id = "/map";
@@ -275,25 +401,6 @@ int main(int argc, char **argv)
             goals.pop_back();
         }
 
-        // if(reddist > 1.0 && greendist > 1.0)
-        // {
-        //     //we'll send a goal to the robot to move 2 meters forward
-        //     goal.target_pose.header.frame_id = "/map";
-        //     goal.target_pose.header.stamp = ros::Time::now();
-        //     if(reddist > greendist)
-        //     {
-        //         ROS_INFO("Sending goal to move forward and towards the left");
-        //         goal.target_pose.pose.position.x = (greendist / 2) + 0.5;
-        //         goal.target_pose.pose.position.y = -0.2;
-        //         goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI);
-        //     }
-        //     if(greendist > reddist)
-        //     {
-        //         ROS_INFO("Sending goal to move forward and towards the right");
-        //         goal.target_pose.pose.position.x = (reddist / 2) + 0.5;
-        //         goal.target_pose.pose.position.y = 0.2;
-        //         goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI);
-        //     }
         if (current_goal != NULL) {
             ROS_INFO("Sending goal");
             ac.sendGoal(*current_goal);
@@ -306,7 +413,7 @@ int main(int argc, char **argv)
             }
             else
             {
-                ROS_INFO("The base failed to move forward for some reason");
+                ROS_INFO("The base failed to move for some reason");
             }
 
         }
