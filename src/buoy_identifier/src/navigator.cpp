@@ -178,9 +178,8 @@ ROS_INFO("Initialized goal E");
 }
 
 }
-          
-        }
-    }
+       }
+}
     else if (have_red) {
         ROS_INFO("Rotate until we see both, we see only red");
         goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
