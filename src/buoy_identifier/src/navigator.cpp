@@ -49,7 +49,12 @@ float distance(int x1, int y1, int x2, int y2)
                 pow(y2 - y1, 2) * 1.0);
 }
 
-void modifyGoal(move_base_msgs::MoveBaseGoal *goal)
+void createGoals(
+    move_base_msgs::MoveBaseGoal *goalA,
+    move_base_msgs::MoveBaseGoal *goalB,
+    move_base_msgs::MoveBaseGoal *goalC,
+    move_base_msgs::MoveBaseGoal *goalD,
+)
 {
     bool have_red = !std::isnan(redang) && !std::isnan(reddist) && !std::isnan(red_x) && !std::isnan(red_y);
     bool have_green = !std::isnan(greenang) && !std::isnan(greendist) && !std::isnan(green_x) && !std::isnan(green_y);
@@ -74,9 +79,13 @@ void modifyGoal(move_base_msgs::MoveBaseGoal *goal)
 
             ROS_INFO("target_x= ", target_x);
             ROS_INFO("target_y= ", target_y);
-            goal->target_pose.pose.position.x = target_y;
-            goal->target_pose.pose.position.y = -target_x;
-            goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI); // TODO confirm orientation == current orientation
+            goalA->target_pose.pose.position.x = target_y;
+            goalA->target_pose.pose.position.y = -target_x;
+            goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI); // TODO confirm orientation == current orientation
+
+            // Push a pointer to goalA to the queue,
+            // which will be executed next time the loop runs
+            goals.push_back(goalA);
 
         }
         else
@@ -112,28 +121,28 @@ void modifyGoal(move_base_msgs::MoveBaseGoal *goal)
                     target_y1 = green_y;
                 }
 
-                goal->target_pose.pose.position.x = target_y2;
-                goal->target_pose.pose.position.y = -target_x2;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal D put into stack
+                goalD->target_pose.pose.position.x = target_y2;
+                goalD->target_pose.pose.position.y = -target_x2;
+                goalD->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalD); //Goal D put into stack
                 ROS_INFO("Initialized goal D");
 
-                goal->target_pose.pose.position.x = target_y1;
-                goal->target_pose.pose.position.y = -target_x1;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal C put into stack
+                goalC->target_pose.pose.position.x = target_y1;
+                goalC->target_pose.pose.position.y = -target_x1;
+                goalC->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalC); //Goal C put into stack
                 ROS_INFO("Initialized goal C");
-                goal->target_pose.pose.position.x = target_y;
-                goal->target_pose.pose.position.y = -target_x;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal B put into stack
+                goalB->target_pose.pose.position.x = target_y;
+                goalB->target_pose.pose.position.y = -target_x;
+                goalB->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalB); //Goal B put into stack
                 ROS_INFO("Initialized goal B");
                 target_x = (green_x - xvect);
                 target_y = (green_y - yvect);
-                goal->target_pose.pose.position.x = target_y;
-                goal->target_pose.pose.position.y = -target_x;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal A put into stack
+                goalA->target_pose.pose.position.x = target_y;
+                goalA->target_pose.pose.position.y = -target_x;
+                goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalA); //Goal A put into stack
                 ROS_INFO("Initialized goal A");
             }
             else //if(reddist<greendist) we set 4 goals going around the right side of the red buoy and through the buoys. E is to the right, F is above, C is in line but behind the midpoint, D is through the midpoint.
@@ -159,48 +168,50 @@ void modifyGoal(move_base_msgs::MoveBaseGoal *goal)
                     target_y1 = red_y;
                 }
 
-                goal->target_pose.pose.position.x = target_y2;
-                goal->target_pose.pose.position.y = -target_x2;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal D put into stack
+                goalD->target_pose.pose.position.x = target_y2;
+                goalD->target_pose.pose.position.y = -target_x2;
+                goalD->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalD); //Goal D put into stack
                 ROS_INFO("Initialized goal D");
-                goal->target_pose.pose.position.x = target_y1;
-                goal->target_pose.pose.position.y = -target_x1;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal C put into stack
+                goalC->target_pose.pose.position.x = target_y1;
+                goalC->target_pose.pose.position.y = -target_x1;
+                goalC->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalC); //Goal C put into stack
                 ROS_INFO("Initialized goal C");
-                goal->target_pose.pose.position.x = target_y;
-                goal->target_pose.pose.position.y = -target_x;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal F put into stack
+                goalB->target_pose.pose.position.x = target_y;
+                goalB->target_pose.pose.position.y = -target_x;
+                goalB->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalB); //Goal F put into stack
                 ROS_INFO("Initialized goal F");
                 target_x = (red_x - xvect);
                 target_y = (red_y - yvect);
-                goal->target_pose.pose.position.x = target_y;
-                goal->target_pose.pose.position.y = -target_x;
-                goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
-                goals.push_back(goal); //Goal E put into stack
+                goalA->target_pose.pose.position.x = target_y;
+                goalA->target_pose.pose.position.y = -target_x;
+                goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(1.0);
+                goals.push_back(goalA); //Goal E put into stack
                 ROS_INFO("Initialized goal E");
             }
 
         }
     }
-}
-else if (have_red)
-{
-    ROS_INFO("Rotate until we see both, we see only red");
-    goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
-}
-else if (have_green)
-{
-    ROS_INFO("Rotate until we see both, we see only green");
-    goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
-}
-else
-{
-    ROS_INFO("Rotate until we see both, we see no buoys");
-    goal->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
-}
+    else if (have_red)
+    {
+        ROS_INFO("Rotate until we see both, we see only red");
+        goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
+        goals.push_back(goalA);
+    }
+    else if (have_green)
+    {
+        ROS_INFO("Rotate until we see both, we see only green");
+        goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
+        goals.push_back(goalA);
+    }
+    else
+    {
+        ROS_INFO("Rotate until we see both, we see no buoys");
+        goalA->target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI * 0.5);
+        goals.push_back(goalA);
+    }
 
 }
 
@@ -228,14 +239,21 @@ int main(int argc, char **argv)
     {
         ROS_INFO("Waiting for the move_base action server to come up");
     }
-    move_base_msgs::MoveBaseGoal goal;
+    // This memory lives on the stack, but we can use it b/c it lives for the entire time while (ros::ok()) runs.
+    move_base_msgs::MoveBaseGoal goalA;
+    move_base_msgs::MoveBaseGoal goalB;
+    move_base_msgs::MoveBaseGoal goalC;
+    move_base_msgs::MoveBaseGoal goalD;
+
     while(ros::ok())
     {
         goal.target_pose.header.frame_id = "/map";
         goal.target_pose.header.stamp = ros::Time::now();
         if(goals.empty())
         {
-            modifyGoal(&goal);
+            // createGoals is responsible for putting as many of these as it feels
+            // is necessary on the queue goals.
+            createGoals(&goalA, &goalB, &goalC, &goalD);
         }
         else
         {
