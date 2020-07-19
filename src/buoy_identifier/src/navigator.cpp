@@ -262,7 +262,7 @@ int main(int argc, char **argv)
         goalC.target_pose.header.stamp = ros::Time::now();
         goalD.target_pose.header.frame_id = "/map";
         goalD.target_pose.header.stamp = ros::Time::now();
-        
+
         if(goals.empty())
         {
             // createGoals is responsible for putting as many of these as it feels
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
         //     }
         if (current_goal != NULL) {
             ROS_INFO("Sending goal");
-            ac.sendGoal(current_goal);
+            ac.sendGoal(*current_goal);
             ac.waitForResult();
         }
 
