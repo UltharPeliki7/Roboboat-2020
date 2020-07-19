@@ -250,10 +250,19 @@ int main(int argc, char **argv)
     move_base_msgs::MoveBaseGoal goalC;
     move_base_msgs::MoveBaseGoal goalD;
 
+    move_base_msgs::MoveBaseGoal* current_goal = NULL;
+
     while(ros::ok())
     {
-        goal.target_pose.header.frame_id = "/map";
-        goal.target_pose.header.stamp = ros::Time::now();
+        goalA.target_pose.header.frame_id = "/map";
+        goalA.target_pose.header.stamp = ros::Time::now();
+        goalB.target_pose.header.frame_id = "/map";
+        goalB.target_pose.header.stamp = ros::Time::now();
+        goalC.target_pose.header.frame_id = "/map";
+        goalC.target_pose.header.stamp = ros::Time::now();
+        goalD.target_pose.header.frame_id = "/map";
+        goalD.target_pose.header.stamp = ros::Time::now();
+        
         if(goals.empty())
         {
             // createGoals is responsible for putting as many of these as it feels
@@ -262,9 +271,10 @@ int main(int argc, char **argv)
         }
         else
         {
-            goal = goals.back();
+            current_goal = goals.back();
             goals.pop_back();
         }
+
         // if(reddist > 1.0 && greendist > 1.0)
         // {
         //     //we'll send a goal to the robot to move 2 meters forward
@@ -284,10 +294,11 @@ int main(int argc, char **argv)
         //         goal.target_pose.pose.position.y = 0.2;
         //         goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI);
         //     }
-        ROS_INFO("Sending goal");
-        ac.sendGoal(goal);
-
-        ac.waitForResult();
+        if (current_goal != NULL) {
+            ROS_INFO("Sending goal");
+            ac.sendGoal(current_goal);
+            ac.waitForResult();
+        }
 
         if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
         {
