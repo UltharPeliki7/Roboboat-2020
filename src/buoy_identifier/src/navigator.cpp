@@ -10,16 +10,21 @@
 #include <vector>
 #include <cmath>
 #include <stdbool.h>
-int count;
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-typedef std::vector<move_base_msgs::MoveBaseGoal> goals;
+
+
+// Global memory
+std::vector<move_base_msgs::MoveBaseGoal> goals;
+int count;
+std::string greens, reds, color;
+float greenang, redang, greendist, reddist;
+float red_x, red_y, green_x, green_y;
+
 void spinThread()
 {
     ros::spin();
 }
-std::string greens, reds, color;
-float greenang, redang, greendist, reddist;
-float red_x, red_y, green_x, green_y;
 
 void buoyMsg_callback(const buoy_identifier::Buoy &msg)
 {
@@ -53,7 +58,7 @@ void createGoals(
     move_base_msgs::MoveBaseGoal *goalA,
     move_base_msgs::MoveBaseGoal *goalB,
     move_base_msgs::MoveBaseGoal *goalC,
-    move_base_msgs::MoveBaseGoal *goalD,
+    move_base_msgs::MoveBaseGoal *goalD
 )
 {
     bool have_red = !std::isnan(redang) && !std::isnan(reddist) && !std::isnan(red_x) && !std::isnan(red_y);
